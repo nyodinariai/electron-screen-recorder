@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recorder</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      button {
+        width: 100px;
+        height: 40px;
+        font-size: 18px;
+        cursor: pointer;
+      }
+      button:hover {
+        opacity: 0.8;
+      }
+      video {
+        display: block;
+        margin: 10px auto;
+        width: 500px;
+        max-height: 200px;
+        border: 1px solid black;
+      }
+      ul {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      li {
+        list-style-type: none;
+        max-width: 200px;
+        margin: 10px;
+        cursor: pointer;
+      }
+      li:hover {
+        opacity: 0.8;
+      }
+      img {
+        width: 100%;
+        max-height: 200px;
+      }
+      h3 {
+        margin: 5px 0;
+        word-wrap: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <button onclick="Rec.start()">Start</button>
+    <button onclick="Rec.stop()">Stop</button>
+    <div id="output"></div>
+
+    <video id="video" autoplay muted></video>
+
+    <ul></ul>
+
+    <script src="./recorder.js"></script>
+  </body>
+</html>
