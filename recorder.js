@@ -1,4 +1,6 @@
-const { ipcRenderer } = require("electron");
+const {
+  ipcRenderer
+} = require("electron");
 var fs = require("fs");
 
 var videoElement = document.querySelector("video");
@@ -15,10 +17,10 @@ var Rec = {
   blobs: [],
 
   start() {
-    if (this.recorder === null && ScreenManager.selectedSource) {
+    if (Rec.recorder === null && ScreenManager.selectedSource) {
       outputElement.innerHTML = "Recording";
-      var video = navigator.webkitGetUserMedia(
-        {
+      try {
+        const stream = navigator.mediaDevices.getUserMedia({
           audio: false,
           video: {
             mandatory: {
@@ -30,20 +32,28 @@ var Rec = {
               maxHeight: 720,
             },
           },
-        },
-        this.handleStream(video),
-        this.handleUserMediaError
-      );
+        }).then((stream) => {
+          console.log(stream)
+          this.handleStream(stream)
+        })
+
+      } catch (e) {
+
+        this.handleUserMediaError(e)
+      };
     }
   },
 
   stop() {
     if (Rec.recorder.state !== null) {
       Rec.recorder.onstop = function () {
-        videoElement.src = "";
+        videoElement.srcObject = null;
         Rec.toArrayBuffer(
-          new Blob(Rec.blobs, { type: "video/webm" }),
+          new Blob(Rec.blobs, {
+            type: "video/webm"
+          }),
           function (arrayBuffer) {
+            console.log(arrayBuffer)
             var buffer = Rec.toBuffer(arrayBuffer);
             var fileName = "./my-video.webm";
             fs.writeFile(fileName, buffer, function (err) {
@@ -52,24 +62,24 @@ var Rec = {
               } else {
                 outputElement.innerHTML = "Saved Video: " + fileName;
                 videoElement.src = fileName;
-                video.play();
+                videoElement.play();
                 videoElement.controls = true;
               }
             });
-          }
-        );
+          });
         Rec.recorder = null;
-      };
+      }
 
       Rec.recorder.stop();
     }
+
   },
 
   handleStream(stream) {
     Rec.recorder = new MediaRecorder(stream);
     Rec.blobs = [];
     videoElement.poster = "";
-    videoElement.src = URL.createObjectURL(stream);
+    videoElement.srcObject = stream;
     Rec.recorder.ondataavailable = function (event) {
       Rec.blobs.push(event.data);
     };
@@ -89,7 +99,7 @@ var Rec = {
   },
 
   toBuffer(arrayBuffer) {
-    let buffer = new Buffer.from(arrayBuffer.byteLength);
+    let buffer = new Buffer.alloc(arrayBuffer.byteLength);
     let array = new Uint8Array(arrayBuffer);
     for (let i = 0; i < array.byteLength; i++) {
       buffer[i] = array[i];
@@ -105,7 +115,9 @@ var ScreenManager = {
 
   listScreens() {
     desktopCapturer
-      .getSources({ types: ["window", "screen"] })
+      .getSources({
+        types: ["window", "screen"]
+      })
       .then(async (sources, error) => {
         var template = "";
         ScreenManager.sources = sources;
@@ -122,7 +134,7 @@ var ScreenManager = {
   setScreen(sourceId) {
     this.selectedSource = this.sources.find((source) => source.id === sourceId);
     videoElement.poster = this.selectedSource.thumbnail.toDataURL();
-    videoElement.src = "";
+    videoElement.srcObject = null;
     videoElement.controls = false;
   },
 };
